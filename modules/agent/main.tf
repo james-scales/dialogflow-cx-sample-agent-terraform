@@ -1,8 +1,3 @@
-# Moved from: terraform/agents.tf
-# All hardcoded values have been extracted to variables.tf in this module.
-# The root module (main.tf) passes environment-specific values (location, bucket URI).
-# Sensible defaults for all other settings are defined in variables.tf.
-
 resource "google_dialogflow_cx_agent" "agent" {
   display_name             = var.display_name
   description              = var.description
@@ -20,7 +15,6 @@ resource "google_dialogflow_cx_agent" "agent" {
 
   advanced_settings {
     audio_export_gcs_destination {
-      # URI is injected from the bucket module output via the root module
       uri = var.audio_export_gcs_uri
     }
 
