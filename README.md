@@ -260,28 +260,48 @@ Flow-level **event handlers** are also declared in this same REST API payload al
 
 ### Conversation flow diagram
 
-```
-Default Start Flow
-├── [Default Welcome Intent]
-│     → "Hello, this is a shirt ordering virtual agent. How can I help you?"
-│
-├── [store.location intent]
-│     → Store Location Page
-│           "Our store is located at 1007 Mountain Drive, Gotham City, NJ."
-│
-├── [store.hours intent]
-│     → Store Hours Page
-│           "We are open from 8 am to 5 pm Monday through Sunday."
-│
-└── [order.new intent]
-      → New Order Page
-            Prompt: "What color would you like?"
-            Prompt: "What size do you want?"
-            ↓ (form complete)
-            "You have selected a [size], [color] shirt."
-            → Order Confirmation Page
-                  "You can pick up your order in 7 to 10 business days. Goodbye."
-                  → END_SESSION
+```mermaid
+flowchart TD
+    START(["Default Start Flow — Start Page"])
+
+    START -->|"Default Welcome Intent"| WELCOME["Inline Greeting Response
+    'Hello, this is a shirt ordering
+    virtual agent. How can I help you?'"]
+    WELCOME -.->|"awaits next input"| START
+
+    START -->|"store.location intent"| SL["Store Location Page
+    ─────────────────────
+    'Our store is located at
+    1007 Mountain Drive, Gotham City, NJ.'"]
+
+    START -->|"store.hours intent"| SH["Store Hours Page
+    ─────────────────────
+    'We are open from 8 am to 5 pm
+    Monday through Sunday.'"]
+
+    START -->|"order.new intent"| NO["New Order Page
+    ─────────────────────
+    'I'd like to collect a bit more
+    information from you.'"]
+
+    NO -->|"prompt"| COLOR["Collect: color
+    'What color would you like?'
+    entity: @sys.color"]
+
+    COLOR -->|"prompt"| SIZE["Collect: size
+    'What size do you want?'
+    entity: size"]
+
+    SIZE -->|"params.status = FINAL"| FILLED["'You have selected a
+    [size], [color] shirt.'"]
+
+    FILLED --> OC["Order Confirmation Page
+    ─────────────────────
+    'You can pick up your order for a
+    [size] [color] shirt in 7-10
+    business days. Goodbye.'"]
+
+    OC -->|"condition: true"| END(["END_SESSION"])
 ```
 
 ---
