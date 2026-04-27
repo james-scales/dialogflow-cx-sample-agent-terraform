@@ -1,44 +1,44 @@
-variable "project_id" {
-  description = "GCP project ID (passed from root var.project_id)"
+variable "agent_id" {
+  description = "Full resource ID of the Dialogflow CX agent (used as parent for the flow)"
   type        = string
 }
 
-variable "project_region" {
-  description = "GCP region (passed from root var.project_region)"
+variable "make_payment_intent" {
+  description = "Resource ID of the payment.make intent"
   type        = string
 }
 
-variable "agent_name" {
-  description = "Dialogflow CX agent resource name (passed from agent module output)"
+variable "file_claim_intent" {
+  description = "Resource ID of the claim.file intent"
   type        = string
 }
 
-variable "store_location_intent" {
-  description = "Resource ID of the store.location intent"
+variable "policy_inquiry_intent" {
+  description = "Resource ID of the policy.inquiry intent"
   type        = string
 }
 
-variable "store_hours_intent" {
-  description = "Resource ID of the store.hours intent"
+variable "collect_policy_number_page" {
+  description = "Resource ID of the Collect Policy Number page"
   type        = string
 }
 
-variable "new_order_intent" {
-  description = "Resource ID of the order.new intent"
+variable "collect_claim_details_page" {
+  description = "Resource ID of the Collect Claim Details page"
   type        = string
 }
 
-variable "store_location_page" {
-  description = "Resource ID of the Store Location page"
+variable "policy_inquiry_page" {
+  description = "Resource ID of the Policy Inquiry page"
   type        = string
 }
 
-variable "store_hours_page" {
-  description = "Resource ID of the Store Hours page"
+variable "accident_report_intent" {
+  description = "Resource ID of the accident.report intent"
   type        = string
 }
 
-variable "new_order_page" {
-  description = "Resource ID of the New Order page"
+variable "accident_assistance_page" {
+  description = "Resource ID of the Accident Assistance page — intermediate hop that hands off to the Playbook"
   type        = string
 }

@@ -1,17 +1,22 @@
 # All intent IDs are consumed by the flows module to wire up transition routes
 # in the default start flow via the REST API call.
 
-output "store_location_intent_id" {
-  description = "Resource ID of the store.location intent"
-  value       = google_dialogflow_cx_intent.store_location.id
+output "make_payment_intent_id" {
+  description = "Resource ID of the payment.make intent"
+  value       = google_dialogflow_cx_intent.make_payment.id
 }
 
-output "store_hours_intent_id" {
-  description = "Resource ID of the store.hours intent"
-  value       = google_dialogflow_cx_intent.store_hours.id
+output "file_claim_intent_id" {
+  description = "Resource ID of the claim.file intent"
+  value       = google_dialogflow_cx_intent.file_claim.id
 }
 
-output "new_order_intent_id" {
-  description = "Resource ID of the order.new intent"
-  value       = google_dialogflow_cx_intent.order_new.id
+output "policy_inquiry_intent_id" {
+  description = "Resource ID of the policy.inquiry intent"
+  value       = google_dialogflow_cx_intent.policy_inquiry.id
+}
+
+output "accident_report_intent_id" {
+  description = "Resource ID of the accident.report intent — routes to the Accident-Assistant Playbook"
+  value       = google_dialogflow_cx_intent.accident_report.id
 }

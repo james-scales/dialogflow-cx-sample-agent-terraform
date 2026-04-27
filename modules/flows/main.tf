@@ -1,84 +1,64 @@
-resource "null_resource" "default_start_flow" {
-  # CREATE: PATCH the Default Start Flow to add intent-based transition routes.
-  # A null_resource with local-exec is used because the Terraform Google provider
-  # has no resource type for modifying the auto-generated Default Start Flow.
-  provisioner "local-exec" {
-    interpreter = ["bash", "-c"]
-    command     = <<-EOT
-      curl --location --request PATCH \
-        "https://${self.triggers.LOCATION}-dialogflow.googleapis.com/v3/${self.triggers.AGENT}/flows/${self.triggers.DEFAULT_START_FLOW}?updateMask=transitionRoutes" \
-        -H "Authorization: Bearer $(gcloud auth print-access-token --project=${self.triggers.PROJECT})" \
-        -H "x-goog-user-project: ${self.triggers.PROJECT}" \
-        -H "Content-Type: application/json" \
-        --data-raw "{
-          \"transitionRoutes\": [{
-            \"intent\": \"${self.triggers.AGENT}/intents/${self.triggers.DEFAULT_WELCOME_INTENT}\",
-            \"triggerFulfillment\": {
-              \"messages\": [{
-                \"text\": {
-                  \"text\": [\"Hello, this is a shirt ordering virtual agent. How can I help you?\"]
-                }
-              }]
-            }
-          }, {
-            \"intent\": \"${self.triggers.STORE_LOCATION_INTENT}\",
-            \"targetPage\": \"${self.triggers.STORE_LOCATION_PAGE}\"
-          }, {
-            \"intent\": \"${self.triggers.STORE_HOURS_INTENT}\",
-            \"targetPage\": \"${self.triggers.STORE_HOURS_PAGE}\"
-          }, {
-            \"intent\": \"${self.triggers.NEW_ORDER_INTENT}\",
-            \"targetPage\": \"${self.triggers.NEW_ORDER_PAGE}\"
-          }]
-        }"
-    EOT
+resource "google_dialogflow_cx_flow" "default_start_flow" {
+  parent                = var.agent_id
+  display_name          = "Default Start Flow"
+  description           = "Routes users to the correct flow based on their stated intent."
+  is_default_start_flow = true
+
+  # Default Welcome Intent (built-in nil UUID, same across all agents).
+  # Responds with a greeting and lists available options.
+  transition_routes {
+    intent = "${var.agent_id}/intents/00000000-0000-0000-0000-000000000000"
+    trigger_fulfillment {
+      messages {
+        text {
+          text = ["Hello, welcome to your insurance virtual assistant. I can help you make a payment, file a claim, or answer questions about your policy. How can I help you today?"]
+        }
+      }
+    }
   }
 
-  triggers = {
-    PROJECT  = var.project_id
-    LOCATION = var.project_region
-    # Full resource name: projects/{PROJECT}/locations/{LOCATION}/agents/{UUID}
-    # Used directly in the URL path (v3/{AGENT}/flows/...) and as a prefix for intent names.
-    AGENT = var.agent_name
-
-    # Well-known nil UUIDs defined by the Dialogflow CX API — the same across all agents.
-    DEFAULT_START_FLOW     = "00000000-0000-0000-0000-000000000000"
-    DEFAULT_WELCOME_INTENT = "00000000-0000-0000-0000-000000000000"
-
-    # Full resource names injected from upstream module outputs.
-    STORE_LOCATION_INTENT = var.store_location_intent
-    STORE_HOURS_INTENT    = var.store_hours_intent
-    NEW_ORDER_INTENT      = var.new_order_intent
-
-    STORE_LOCATION_PAGE = var.store_location_page
-    STORE_HOURS_PAGE    = var.store_hours_page
-    NEW_ORDER_PAGE      = var.new_order_page
+  transition_routes {
+    intent      = var.make_payment_intent
+    target_page = var.collect_policy_number_page
   }
 
-  # DESTROY: Remove the custom routes, restoring the flow to its default state.
-  # This is required because the routes were added via REST (not a managed resource),
-  # so Terraform cannot remove them automatically on destroy.
-  provisioner "local-exec" {
-    when        = destroy
-    interpreter = ["bash", "-c"]
-    command     = <<-EOT
-      curl --location --request PATCH \
-        "https://${self.triggers.LOCATION}-dialogflow.googleapis.com/v3/${self.triggers.AGENT}/flows/${self.triggers.DEFAULT_START_FLOW}?updateMask=transitionRoutes" \
-        -H "Authorization: Bearer $(gcloud auth print-access-token --project=${self.triggers.PROJECT})" \
-        -H "x-goog-user-project: ${self.triggers.PROJECT}" \
-        -H "Content-Type: application/json" \
-        --data-raw "{
-          \"transitionRoutes\": [{
-            \"intent\": \"${self.triggers.AGENT}/intents/${self.triggers.DEFAULT_WELCOME_INTENT}\",
-            \"triggerFulfillment\": {
-              \"messages\": [{
-                \"text\": {
-                  \"text\": [\"Hello, this is a shirt ordering virtual agent. How can I help you?\"]
-                }
-              }]
-            }
-          }]
-        }"
-    EOT
+  transition_routes {
+    intent      = var.file_claim_intent
+    target_page = var.collect_claim_details_page
+  }
+
+  transition_routes {
+    intent      = var.policy_inquiry_intent
+    target_page = var.policy_inquiry_page
+  }
+
+  transition_routes {
+    intent      = var.accident_report_intent
+    target_page = var.accident_assistance_page
+  }
+
+  # Reprompt when the user's utterance doesn't match any intent.
+  # Restates available options so the conversation can recover gracefully.
+  event_handlers {
+    event = "sys.no-match-default"
+    trigger_fulfillment {
+      messages {
+        text {
+          text = ["I didn't quite catch that. I can help you make a payment, file a claim, or answer questions about your policy. Which would you like?"]
+        }
+      }
+    }
+  }
+
+  # Check-in message when the channel receives no audio or text input.
+  event_handlers {
+    event = "sys.no-input-default"
+    trigger_fulfillment {
+      messages {
+        text {
+          text = ["Are you still there? Take your time — I can help with payments, claims, or policy questions whenever you're ready."]
+        }
+      }
+    }
   }
 }

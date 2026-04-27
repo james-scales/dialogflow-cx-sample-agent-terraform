@@ -2,13 +2,13 @@
 variable "display_name" {
   description = "Display name of the Dialogflow CX agent"
   type        = string
-  default     = "store-order-agent"
+  default     = "insurance-virtual-agent"
 }
 
 variable "description" {
   description = "Description of the Dialogflow CX agent"
   type        = string
-  default     = "Example description."
+  default     = "Insurance virtual assistant for payments, claims, and policy inquiries."
 }
 
 variable "location" {
@@ -137,18 +137,10 @@ variable "tts_voices" {
 }
 
 #---------- Gen App Builder (optional) ----------#
-# Uncomment gen_app_builder_settings in main.tf and set this variable when ready.
-# variable "gen_app_builder_engine" {
-#   description = "Vertex AI Search / Gen App Builder engine resource name"
-#   type        = string
-# }
-
-#---------- Playbooks (optional) ----------#
-# Uncomment start_playbook in main.tf and set this variable when ready.
-# variable "start_playbook" {
-#   description = "Dialogflow CX Playbook resource name (Vertex AI Agent Builder)"
-#   type        = string
-# }
+variable "gen_app_builder_engine" {
+  description = "Vertex AI Search / Gen App Builder engine resource name"
+  type        = string
+}
 
 #---------- Agent feature flags ----------#
 variable "enable_multi_language_training" {
@@ -169,9 +161,46 @@ variable "enable_answer_feedback" {
   default     = false
 }
 
+#---------- Security Settings ----------#
+variable "security_settings_id" {
+  description = "Resource ID of the security settings to apply (from security_settings module output). Null = no security settings."
+  type        = string
+}
+
 #---------- Personalization ----------#
 variable "default_end_user_metadata" {
   description = "Default end-user metadata JSON string passed to the agent for personalization"
   type        = string
   default     = "{\"example-key\": \"example-value\"}"
 }
+
+#---------- Git Integration ----------#
+# variable "github_token_secret_id" {
+#   description = "Full Secret Manager resource ID of the GitHub OAuth token secret (e.g. module.secrets.github_token_secret_id). Null = git integration disabled."
+#   type        = string
+#   default     = null
+# }
+
+# variable "github_repo_uri" {
+#   description = "GitHub repository URI for Dialogflow CX agent version sync (e.g. https://github.com/myorg/myrepo.git)"
+#   type        = string
+#   default     = null
+# }
+
+# variable "github_tracking_branch" {
+#   description = "Branch Dialogflow CX tracks for agent version sync"
+#   type        = string
+#   default     = "main"
+# }
+
+# variable "github_display_name" {
+#   description = "Display name shown for the GitHub integration in the Dialogflow CX console"
+#   type        = string
+#   default     = "Agent Repo"
+# }
+
+# variable "github_branches" {
+#   description = "List of branches available for Dialogflow CX version export"
+#   type        = list(string)
+#   default     = ["main"]
+# }

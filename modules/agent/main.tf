@@ -24,9 +24,12 @@ resource "google_dialogflow_cx_agent" "agent" {
       no_speech_timeout             = var.no_speech_timeout
       use_timeout_based_endpointing = var.use_timeout_based_endpointing
 
-      # NOTE: models block removed — contained example/placeholder data
-      # ("wrench", "1.3kg", "3") copied from Google API docs.
-      # Add back with real custom model names if needed.
+      # NOTE: Example model, can be removed if not needed
+      models = {
+        "AUDIO_ENCODING_MULAW"     = "telephony"
+        "AUDIO_ENCODING_LINEAR_16" = "latest_short"
+        "AUDIO_ENCODING_OGG_OPUS"  = "latest_short"
+      }
     }
 
     #---------- DTMF - Telephony integration ----------#
@@ -49,9 +52,22 @@ resource "google_dialogflow_cx_agent" "agent" {
     }
   }
 
-  #---------- SENSITIVE INFORMATION ----------#
-  # git_integration_settings removed — contains hardcoded access_token.
-  # Use Secrets Manager data sources to inject the token securely if re-enabling.
+  #---------- Git Integration ----------#
+  # access_token accepts a Secret Manager secret version path directly —
+  # no data source needed. Enable by passing github_token_secret_id from
+  # the secrets module and setting github_repo_uri in tfvars.
+  # dynamic "git_integration_settings" {
+  #   for_each = var.github_token_secret_id != null && var.github_repo_uri != null ? [1] : []
+  #   content {
+  #     github_settings {
+  #       display_name    = var.github_display_name
+  #       repository_uri  = var.github_repo_uri
+  #       tracking_branch = var.github_tracking_branch
+  #       access_token    = "${var.github_token_secret_id}/versions/latest"
+  #       branches        = var.github_branches
+  #     }
+  #   }
+  # }
 
   #---------- Text to Speech ----------#
   # Controls how speech is synthesized and how to customize it.
@@ -61,18 +77,13 @@ resource "google_dialogflow_cx_agent" "agent" {
   }
 
   #---------- Gen App Builder ----------#
-  # NOTE: Commented out — requires a real Vertex AI Search / Gen App Builder engine ID.
   # FORMAT: projects/{Project ID}/locations/{Location ID}/collections/{Collection ID}/engines/{Engine ID}
-  # Uncomment and set var.gen_app_builder_engine in tfvars when ready.
-  # gen_app_builder_settings {
-  #   engine = var.gen_app_builder_engine
-  # }
+  # Set in tfvars to enable Gen App Builder integration; leave null to disable and avoid errors.
+  gen_app_builder_settings {
+    engine = var.gen_app_builder_engine
+  }
 
-  # NOTE: Commented out — requires a real Dialogflow CX Playbook ID.
-  # Only needed if using Vertex AI Agent Builder Playbooks.
-  # Uncomment and set var.start_playbook in tfvars when ready.
-  # start_playbook = var.start_playbook
-
+  security_settings              = var.security_settings_id
   enable_multi_language_training = var.enable_multi_language_training
   locked                         = var.locked
 
